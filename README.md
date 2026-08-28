@@ -27,7 +27,7 @@ the provided makefile.
 
 ## Build
 A simple makefile has been provided for users in a Linux/WSL environment. It assumes uploading
-to the standard `/dev/ttyACM0` port, but this may be easily changed with the PORT variable if
+to the standard `/dev/ttyACM0` port, but this may be easily changed with the `PORT` variable if
 necessary.
 
 `APP`: The name of the `.c` file without the extension.
