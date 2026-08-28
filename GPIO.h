@@ -40,6 +40,8 @@ typedef struct {
 #define _PIN6           (0x06)
 #define _PIN7           (0x07)
 
+// Leading underscores are used to avoid conflict
+// with the existing definitions in avr/io.h
 #define _PB0            (_PB + _PIN0)
 #define _PB1            (_PB + _PIN1)
 #define _PB2            (_PB + _PIN2)
@@ -68,8 +70,6 @@ typedef struct {
 #define _PD7            (_PD + _PIN7)
 
 // Digital pin mapping
-// Leading underscores are used to avoid conflict
-// with the existing definitions in avr/io.h
 #define D0              (_PD0)
 #define D1              (_PD1)
 #define D2              (_PD2)
@@ -85,7 +85,7 @@ typedef struct {
 #define D12             (_PB4)
 #define D13             (_PB5)
 
-#define USR_LED (D13)
+#define USER_LED        (D13)
 
 #define INPUT           (0x00)
 #define OUTPUT          (0x01)
@@ -99,6 +99,7 @@ bool validPort(GPIO_Type* port);
 void initGPIO(uint8_t pin_code, uint8_t mode);
 void writePin(uint8_t pin_code, uint8_t pin_state);
 void togglePin(uint8_t pin_code);
+bool readPin(uint8_t pin_code);
 
 
 /***********************************************
