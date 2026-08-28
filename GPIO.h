@@ -128,6 +128,7 @@ GPIO_Type* getPort(uint8_t pin_code) {
             GPIO = INVALID_PORT;
     }
 
+    // Note: may compact to just return statements in cases
     return GPIO;
 }
 
@@ -144,7 +145,7 @@ void initGPIO(uint8_t pin_code, uint8_t mode) {
     GPIO_Type* GPIO = getPort(pin_code);
 
     if (!validPort(GPIO) || !validPin(pin)) {
-        return;     // TODO: Does nothing now. Will throw error later.
+        errorGPIO();
     }
 
     if (mode == INPUT || mode == INPUT_PULLUP) {
@@ -160,7 +161,7 @@ void initGPIO(uint8_t pin_code, uint8_t mode) {
     }
 
     else {
-        return;     // TODO: Error state
+        errorGPIO();
     }
 }
 
@@ -169,7 +170,7 @@ void writePin(uint8_t pin_code, uint8_t pin_state) {
     GPIO_Type* GPIO = getPort(pin_code);
 
     if (!validPort(GPIO) || !validPin(pin)) {
-        return;     // TODO: Does nothing now. Will throw error later.
+        errorGPIO();
     }
 
     if (pin_state == HIGH) {
@@ -181,7 +182,7 @@ void writePin(uint8_t pin_code, uint8_t pin_state) {
     }
 
     else {
-        return;     // TODO: error state
+        errorGPIO();
     }
 }
 
@@ -190,9 +191,8 @@ void togglePin(uint8_t pin_code) {
     GPIO_Type* GPIO = getPort(pin_code);
 
     if (!validPort(GPIO) || !validPin(pin)) {
-       return;     // TODO: Does nothing now. Will throw error later.
+       errorGPIO();
     }
-
 
     GPIO->PIN |= (1u << pin);
 }
@@ -202,7 +202,7 @@ bool readPin(uint8_t pin_code) {
     GPIO_Type* GPIO = getPort(pin_code);
 
     if (!validPort(GPIO) || !validPin(pin)) {
-        return false;     // TODO: Does nothing now. Will throw error later.
+        errorGPIO();
     }
     
     return GPIO->PIN & (1u << pin);
@@ -221,6 +221,9 @@ void errorGPIO() {
     
     initGPIO(USER_LED, OUTPUT);
     writePin(USER_LED, LOW);
+
+    // Note: volatile required in the empty timing loops
+    //       otherwise they get optimized out
 
     while (1) {
         // S
