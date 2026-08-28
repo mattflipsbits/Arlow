@@ -44,3 +44,8 @@ The makefile options are:
 
 ## Documentation
 Documentation for each header is provided in the repository `/docs` folder in markdown format.
+
+## Examples
+Ready-to-compile examples are included in the `/examples` folder. Simply navigate to the folder,
+edit the `APP` field in the makefile to choose the example you wish to compile, and build with
+`make`.
