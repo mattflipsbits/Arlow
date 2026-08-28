@@ -195,7 +195,7 @@ bool readPin(uint8_t pin_code) {
     GPIO_Type* GPIO = getPort(pin_code);
 
     if (!validPort(GPIO)) {
-        return;     // TODO: Does nothing now. Will throw error later.
+        return false;     // TODO: Does nothing now. Will throw error later.
     }
     
     return GPIO->PIN & (1u << pin);
