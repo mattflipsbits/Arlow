@@ -190,4 +190,16 @@ void togglePin(uint8_t pin_code) {
     GPIO->PIN |= (1u << pin);
 }
 
+bool readPin(uint8_t pin_code) {
+    uint8_t pin = pin_code & 0x0F;
+    GPIO_Type* GPIO = getPort(pin_code);
+
+    if (!validPort(GPIO)) {
+        return;     // TODO: Does nothing now. Will throw error later.
+    }
+    
+    return GPIO->PIN & (1u << pin);
+}
+
+
 #endif
