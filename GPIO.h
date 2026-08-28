@@ -39,6 +39,7 @@ typedef struct {
 #define _PIN5           (0x05)
 #define _PIN6           (0x06)
 #define _PIN7           (0x07)
+#define MAX_PIN         (0x07)
 
 // Leading underscores are used to avoid conflict
 // with the existing definitions in avr/io.h
@@ -96,6 +97,7 @@ typedef struct {
 
 GPIO_Type* getPort(uint8_t pin_code);
 bool validPort(GPIO_Type* port);
+bool validPin(uint8_t pin);
 void initGPIO(uint8_t pin_code, uint8_t mode);
 void writePin(uint8_t pin_code, uint8_t pin_state);
 void togglePin(uint8_t pin_code);
@@ -132,11 +134,15 @@ bool validPort(GPIO_Type* port) {
     return (port == GPIOB || port == GPIOC || port == GPIOD);
 }
 
+bool validPin(uint8_t pin) {
+    return (pin <= MAX_PIN);
+}
+
 void initGPIO(uint8_t pin_code, uint8_t mode) {
     uint8_t pin = pin_code & 0x0F;
     GPIO_Type* GPIO = getPort(pin_code);
 
-    if (!validPort(GPIO)) {
+    if (!validPort(GPIO) || !validPin(pin)) {
         return;     // TODO: Does nothing now. Will throw error later.
     }
 
@@ -161,10 +167,9 @@ void writePin(uint8_t pin_code, uint8_t pin_state) {
     uint8_t pin = pin_code & 0x0F;
     GPIO_Type* GPIO = getPort(pin_code);
 
-    if (!validPort(GPIO)) {
+    if (!validPort(GPIO) || !validPin(pin)) {
         return;     // TODO: Does nothing now. Will throw error later.
     }
-
 
     if (pin_state == HIGH) {
         GPIO->PORT |= (1u << pin);
@@ -183,7 +188,7 @@ void togglePin(uint8_t pin_code) {
     uint8_t pin = pin_code & 0x0F;
     GPIO_Type* GPIO = getPort(pin_code);
 
-    if (!validPort(GPIO)) {
+    if (!validPort(GPIO) || !validPin(pin)) {
        return;     // TODO: Does nothing now. Will throw error later.
     }
 
@@ -195,7 +200,7 @@ bool readPin(uint8_t pin_code) {
     uint8_t pin = pin_code & 0x0F;
     GPIO_Type* GPIO = getPort(pin_code);
 
-    if (!validPort(GPIO)) {
+    if (!validPort(GPIO) || !validPin(pin)) {
         return false;     // TODO: Does nothing now. Will throw error later.
     }
     
