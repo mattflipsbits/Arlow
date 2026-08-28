@@ -31,6 +31,7 @@ to the standard `/dev/ttyACM0` port, but this may be easily changed with the POR
 necessary.
 
 `APP`: The name of the `.c` file without the extension.
+
 `PORT`: Serial port of the connected Arduino.
 
 The makefile options are:
