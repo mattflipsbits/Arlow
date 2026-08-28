@@ -103,6 +103,7 @@ void writePin(uint8_t pin_code, uint8_t pin_state);
 void togglePin(uint8_t pin_code);
 bool readPin(uint8_t pin_code);
 
+void errorGPIO();
 
 /***********************************************
  * Function definitions
@@ -205,6 +206,59 @@ bool readPin(uint8_t pin_code) {
     }
     
     return GPIO->PIN & (1u << pin);
+}
+
+// Loops SOS on the user LED using soft delays
+// TODO: Communicate error via serial port to host computer
+void errorGPIO() {
+    const uint32_t DOT = 50000;
+    const uint32_t DASH = 3 * DOT;
+    const uint32_t SPACE = 4 * DOT;     // Spaces are 7 dots in
+                                        // normal Morse, but we
+                                        // only need to add 4 since
+                                        // 3 dots of space are included
+                                        // in the previous letter
+    
+    initGPIO(USER_LED, OUTPUT);
+    writePin(USER_LED, LOW);
+
+    while (1) {
+        // S
+        for (int i = 0; i < 6; i++) {
+            togglePin(USER_LED);
+
+            for (volatile uint32_t j = 0; j < DOT; j++)
+                ;   // intentionally empty
+        }
+
+        // O
+        for (int i = 0; i < 6; i++) {
+            togglePin(USER_LED);
+
+            if (i % 2 == 0) {
+                for (volatile uint32_t j = 0; j < DASH; j++)
+                    ;   // intentionally empty;
+            }   
+
+            else {
+                for (volatile uint32_t j = 0; j < DOT; j++)
+                    ;   // intentionally empty
+            }
+        }
+        
+
+        // S
+        for (int i = 0; i < 6; i++) {
+            togglePin(USER_LED);
+
+            for (volatile uint32_t j = 0; j < DOT; j++)
+                ;   // intentionally empty
+        }
+
+        // space
+        for (volatile uint32_t j = 0; j < SPACE; j++)
+            ;   // intentionally empty
+    }
 }
 
 
