@@ -1,8 +1,17 @@
 #ifndef UNOR3_GPIO_H
 #define UNOR3_GPIO_H
 
+// Optional AVR headers
+// for testing conflicts
 
-// #include <avr/io.h>      // Leaving just in case
+// #include <avr/io.h>     
+
+
+
+// GENERAL NOTE
+// Leading underscores are used to avoid conflict
+// with the existing definitions in AVR headers
+
 
 
 /******************************************
@@ -25,6 +34,9 @@ typedef struct {
 #define GPIOC           ((GPIO_Type*)(0x26))
 #define GPIOD           ((GPIO_Type*)(0x29))
 
+#define _MCUCR           (*(volatile uint8_t*)(0x55))
+#define _PUD             (4)
+
 // Encoding
 // Internal port encoding
 #define _PB             (0x10)
@@ -41,8 +53,6 @@ typedef struct {
 #define _PIN7           (0x07)
 #define MAX_PIN         (0x07)
 
-// Leading underscores are used to avoid conflict
-// with the existing definitions in avr/io.h
 #define _PB0            (_PB + _PIN0)
 #define _PB1            (_PB + _PIN1)
 #define _PB2            (_PB + _PIN2)
@@ -96,8 +106,13 @@ typedef struct {
 #define HIGH            (0x01)
 
 GPIO_Type* getPort(uint8_t pin_code);
+
+void enablePullup(bool enabled);
+void setPullup(uint8_t pin_code, uint8_t state);
+
 bool validPort(GPIO_Type* port);
 bool validPin(uint8_t pin);
+
 void initGPIO(uint8_t pin_code, uint8_t mode);
 void writePin(uint8_t pin_code, uint8_t pin_state);
 void togglePin(uint8_t pin_code);
@@ -105,10 +120,11 @@ bool readPin(uint8_t pin_code);
 
 void errorGPIO();
 
+
+
 /***********************************************
  * Function definitions
  ***********************************************/
-
 
 GPIO_Type* getPort(uint8_t pin_code) {
     uint8_t port = pin_code & 0xF0;
@@ -132,6 +148,24 @@ GPIO_Type* getPort(uint8_t pin_code) {
     return GPIO;
 }
 
+void enablePullup(bool enabled) {
+    if (enabled) {
+        _MCUCR &= ~(1u << _PUD);
+    }
+
+    else {
+        _MCUCR |= (1u << _PUD);
+    }
+}
+
+void setPullup(uint8_t pin_code, uint8_t state) {
+    if (_MCUCR & (1u << _PUD)) {
+        errorGPIO();
+    }
+    
+    writePin(pin_code, state);
+}
+
 bool validPort(GPIO_Type* port) {
     return (port == GPIOB || port == GPIOC || port == GPIOD);
 }
@@ -152,6 +186,8 @@ void initGPIO(uint8_t pin_code, uint8_t mode) {
         GPIO->DDR &= ~(1u << pin);
 
         if (mode == INPUT_PULLUP) {
+            _MCUCR &= ~(1u << _PUD);
+
             GPIO->PORT |= (1u << pin);
         }
     }
@@ -213,12 +249,12 @@ bool readPin(uint8_t pin_code) {
 void errorGPIO() {
     const uint32_t DOT = 50000;
     const uint32_t DASH = 3 * DOT;
-    const uint32_t SPACE = 4 * DOT;     // Spaces are 7 dots in
-                                        // normal Morse, but we
-                                        // only need to add 4 since
-                                        // 3 dots of space are included
-                                        // in the previous letter
-    
+    const uint32_t SPACE = 4 * DOT;         
+ 
+    // Spaces are 7 dots in normal Morse, but we only
+    // need to add 4 since 3 dots of space are included
+    // in the previous letter   
+
     initGPIO(USER_LED, OUTPUT);
     writePin(USER_LED, LOW);
 
