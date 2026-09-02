@@ -1,4 +1,4 @@
-APP = blink
+APP = test
 PORT = /dev/ttyACM0
 
 all:

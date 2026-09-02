@@ -7,11 +7,16 @@
 // #include <avr/io.h>     
 
 
+// Required if using GPIO.h alone
+// and not using Arlow.h
+
+// #include "error.h"
+
+
 
 // GENERAL NOTE
 // Leading underscores are used to avoid conflict
 // with the existing definitions in AVR headers
-
 
 
 /******************************************
@@ -96,6 +101,9 @@ typedef struct {
 #define D12             (_PB4)
 #define D13             (_PB5)
 
+// Analog pin mapping
+// TODO: To be added with ADC
+
 #define USER_LED        (D13)
 
 #define INPUT           (0x00)
@@ -105,26 +113,26 @@ typedef struct {
 #define LOW             (0x00)
 #define HIGH            (0x01)
 
+
 GPIO_Type* getPort(uint8_t pin_code);
 
 void enablePullup(bool enabled);
 void setPullup(uint8_t pin_code, uint8_t state);
 
+void initGPIO(uint8_t pin_code, uint8_t mode);
+void validateGPIO(GPIO_Type* port, uint8_t pin);
 bool validPort(GPIO_Type* port);
 bool validPin(uint8_t pin);
 
-void initGPIO(uint8_t pin_code, uint8_t mode);
 void writePin(uint8_t pin_code, uint8_t pin_state);
 void togglePin(uint8_t pin_code);
 bool readPin(uint8_t pin_code);
 
-void errorGPIO();
 
 
-
-/***********************************************
+/******************************************
  * Function definitions
- ***********************************************/
+ ******************************************/
 
 GPIO_Type* getPort(uint8_t pin_code) {
     uint8_t port = pin_code & 0xF0;
@@ -160,27 +168,17 @@ void enablePullup(bool enabled) {
 
 void setPullup(uint8_t pin_code, uint8_t state) {
     if (_MCUCR & (1u << _PUD)) {
-        errorGPIO();
+        errorSOS();
     }
     
     writePin(pin_code, state);
-}
-
-bool validPort(GPIO_Type* port) {
-    return (port == GPIOB || port == GPIOC || port == GPIOD);
-}
-
-bool validPin(uint8_t pin) {
-    return (pin <= MAX_PIN);
 }
 
 void initGPIO(uint8_t pin_code, uint8_t mode) {
     uint8_t pin = pin_code & 0x0F;
     GPIO_Type* GPIO = getPort(pin_code);
 
-    if (!validPort(GPIO) || !validPin(pin)) {
-        errorGPIO();
-    }
+    validateGPIO(GPIO, pin);
 
     if (mode == INPUT || mode == INPUT_PULLUP) {
         GPIO->DDR &= ~(1u << pin);
@@ -197,17 +195,29 @@ void initGPIO(uint8_t pin_code, uint8_t mode) {
     }
 
     else {
-        errorGPIO();
+        errorSOS();
     }
+}
+
+void validateGPIO(GPIO_Type* port, uint8_t pin) {
+    if (!validPort(port) || !validPin(pin)) {
+        errorSOS();
+    }
+}
+
+bool validPort(GPIO_Type* port) {
+    return (port == GPIOB || port == GPIOC || port == GPIOD);
+}
+
+bool validPin(uint8_t pin) {
+    return (pin <= MAX_PIN);
 }
 
 void writePin(uint8_t pin_code, uint8_t pin_state) {
     uint8_t pin = pin_code & 0x0F;
     GPIO_Type* GPIO = getPort(pin_code);
 
-    if (!validPort(GPIO) || !validPin(pin)) {
-        errorGPIO();
-    }
+    validateGPIO(GPIO, pin);
 
     if (pin_state == HIGH) {
         GPIO->PORT |= (1u << pin);
@@ -218,7 +228,7 @@ void writePin(uint8_t pin_code, uint8_t pin_state) {
     }
 
     else {
-        errorGPIO();
+        errorSOS();
     }
 }
 
@@ -226,9 +236,7 @@ void togglePin(uint8_t pin_code) {
     uint8_t pin = pin_code & 0x0F;
     GPIO_Type* GPIO = getPort(pin_code);
 
-    if (!validPort(GPIO) || !validPin(pin)) {
-       errorGPIO();
-    }
+    validateGPIO(GPIO, pin);
 
     GPIO->PIN |= (1u << pin);
 }
@@ -237,68 +245,11 @@ bool readPin(uint8_t pin_code) {
     uint8_t pin = pin_code & 0x0F;
     GPIO_Type* GPIO = getPort(pin_code);
 
-    if (!validPort(GPIO) || !validPin(pin)) {
-        errorGPIO();
-    }
+    validateGPIO(GPIO, pin);
     
     return GPIO->PIN & (1u << pin);
 }
 
-// Loops SOS on the user LED using soft delays
-// TODO: Communicate error via serial port to host computer
-void errorGPIO() {
-    const uint32_t DOT = 50000;
-    const uint32_t DASH = 3 * DOT;
-    const uint32_t SPACE = 4 * DOT;         
- 
-    // Spaces are 7 dots in normal Morse, but we only
-    // need to add 4 since 3 dots of space are included
-    // in the previous letter   
-
-    initGPIO(USER_LED, OUTPUT);
-    writePin(USER_LED, LOW);
-
-    // Note: volatile required in the empty timing loops
-    //       otherwise they get optimized out
-
-    while (1) {
-        // S
-        for (int i = 0; i < 6; i++) {
-            togglePin(USER_LED);
-
-            for (volatile uint32_t j = 0; j < DOT; j++)
-                ;   // intentionally empty
-        }
-
-        // O
-        for (int i = 0; i < 6; i++) {
-            togglePin(USER_LED);
-
-            if (i % 2 == 0) {
-                for (volatile uint32_t j = 0; j < DASH; j++)
-                    ;   // intentionally empty;
-            }   
-
-            else {
-                for (volatile uint32_t j = 0; j < DOT; j++)
-                    ;   // intentionally empty
-            }
-        }
-        
-
-        // S
-        for (int i = 0; i < 6; i++) {
-            togglePin(USER_LED);
-
-            for (volatile uint32_t j = 0; j < DOT; j++)
-                ;   // intentionally empty
-        }
-
-        // space
-        for (volatile uint32_t j = 0; j < SPACE; j++)
-            ;   // intentionally empty
-    }
-}
 
 
 #endif
