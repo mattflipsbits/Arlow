@@ -38,7 +38,7 @@ void errorSOS();
  ******************************************/
 
 void initSOS() {
-    // Just need a quick and dirt output init
+    // Just need a quick and dirty output init
     // of the user LED (at PB5) and set it to low
     _DDRB |= (1u << 5);
     _PORTB &= ~(1u << 5);
