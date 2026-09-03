@@ -1,15 +1,27 @@
+#include <string.h>
 #include "Arlow.h"
 
-#define DELAY       (50000)
-#define TEST_PIN    (0x1A)
 
 int main(void) {
-    initGPIO(TEST_PIN, OUTPUT);
+    char* prompt = "Press 1 to toggle LED";
+    char input = 0;
+    
+    initUSART(8, 'n', 1, ASYNC, 9600, true, true);
+    initGPIO(USER_LED, OUTPUT);
+
+    for (size_t i = 0; i < strlen(prompt); i++) {
+        sendByte(prompt[i]);
+    }
+
+    sendByte('\r');
+    sendByte('\n');
 
     while(1) {
-        togglePin(TEST_PIN);
+        input = receiveByte();
 
-        for (volatile uint32_t i = 0; i < DELAY; i++)
-            ;
+        if (input == '1') {
+            togglePin(USER_LED);
+        }
     }
 }
+

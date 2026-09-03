@@ -10,7 +10,7 @@
 // Required if using GPIO.h alone
 // and not using Arlow.h
 
-// #include "error.h"
+#include "error.h"
 
 
 
@@ -140,20 +140,17 @@ GPIO_Type* getPort(uint8_t pin_code) {
 
     switch(port) {
         case _PB:
-            GPIO = GPIOB;
+            return GPIOB;
             break;
         case _PC:
-            GPIO = GPIOC;
+            return GPIOC;
             break;
         case _PD:
-            GPIO = GPIOD;
+            return GPIOD;
             break;
         default:
-            GPIO = INVALID_PORT;
+            errorSOS();
     }
-
-    // Note: may compact to just return statements in cases
-    return GPIO;
 }
 
 void enablePullup(bool enabled) {

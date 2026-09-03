@@ -8,3 +8,4 @@
 
 // Peripheral headers
 #include "GPIO.h"
+#include "USART.h"
