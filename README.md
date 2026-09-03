@@ -6,8 +6,8 @@ Arlow is currently in active development and incomplete. All filenames containin
 
 ## About
 Arlow is a series of peripheral drivers for Arduino AVR development boards. It is being
-developed initially for the UNO R3 due to its popularity, but support for other
-popular AVR boards such as the Mega 2560 or Nano is planned.
+developed initially for the UNO R3 due to that board's popularity, but support for other
+popular AVR boards such as the Mega 2560 is planned.
 
 Its purpose is to provide a relatively low-friction step outside of the Arduino ecosystem
 towards "pure" microcontroller programming. The header files are of the all-in-one variety,
