@@ -13,6 +13,12 @@
 // GPIO Error Codes
 
 
+// USART Registers
+#define _UCSRA  (*(volatile uint8_t*)(0xC0))
+#define _UCSRB  (*(volatile uint8_t*)(0xC1))
+#define _UCSRC  (*(volatile uint8_t*)(0xC2))
+#define _UBRRL  (*(volatile uint8_t*)(0xC4))
+
 // USART Error Codes
 
 
@@ -42,6 +48,25 @@ void initSOS() {
     // of the user LED (at PB5) and set it to low
     _DDRB |= (1u << 5);
     _PORTB &= ~(1u << 5);
+
+    // Initialize USART to 8N1, 9600 baud
+    // 8
+    _UCSRC |= (0b11 << 1);
+    _UCSRB &= ~(1u << 2);
+
+    // N
+    _UCSRC &= ~(0b11 << 4);
+
+    // 1
+    _UCSRC &= ~(1u << 3);
+
+    // 9600 baud, async
+    _UCSRA |= (1u << 1);   // ASYNC mode, double-speed
+    int baud = 207;
+    _UBRRL = baud & 0xff;
+
+    // enable transmission
+    _UCSRB |= (1u << 3);
 }
 
 void toggleUserLED() {
