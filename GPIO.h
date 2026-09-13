@@ -113,6 +113,15 @@ typedef struct {
 #define LOW             (0x00)
 #define HIGH            (0x01)
 
+// Error codes
+#define BAD_PORT        (0x00)
+#define BAD_PIN         (0x01)
+#define BAD_MODE        (0x02)
+#define PU_DISABLED     (0x03)
+#define BAD_GETPORT     (0x04)
+#define UNKNOWN_ERR     (0xFF)
+
+
 
 GPIO_Type* getPort(uint8_t pin_code);
 
@@ -124,7 +133,7 @@ void validateGPIO(GPIO_Type* port, uint8_t pin);
 bool validPort(GPIO_Type* port);
 bool validPin(uint8_t pin);
 
-void writePin(uint8_t pin_code, uint8_t pin_state);
+void writePin(uint8_t pin_code, bool pin_state);
 void togglePin(uint8_t pin_code);
 bool readPin(uint8_t pin_code);
 
@@ -149,7 +158,7 @@ GPIO_Type* getPort(uint8_t pin_code) {
             return GPIOD;
             break;
         default:
-            errorSOS();
+            errorSOS(BAD_GETPORT);
     }
 }
 
@@ -165,7 +174,7 @@ void enablePullup(bool enabled) {
 
 void setPullup(uint8_t pin_code, uint8_t state) {
     if (_MCUCR & (1u << _PUD)) {
-        errorSOS();
+        errorSOS(PU_DISABLED);
     }
     
     writePin(pin_code, state);
@@ -192,13 +201,17 @@ void initGPIO(uint8_t pin_code, uint8_t mode) {
     }
 
     else {
-        errorSOS();
+        errorSOS(BAD_MODE);
     }
 }
 
 void validateGPIO(GPIO_Type* port, uint8_t pin) {
-    if (!validPort(port) || !validPin(pin)) {
-        errorSOS();
+    if (!validPort(port)) {
+        errorSOS(BAD_PORT);
+    }
+
+    if (!validPin(pin)) {
+        errorSOS(BAD_PIN);
     }
 }
 
@@ -210,7 +223,7 @@ bool validPin(uint8_t pin) {
     return (pin <= MAX_PIN);
 }
 
-void writePin(uint8_t pin_code, uint8_t pin_state) {
+void writePin(uint8_t pin_code, bool pin_state) {
     uint8_t pin = pin_code & 0x0F;
     GPIO_Type* GPIO = getPort(pin_code);
 
@@ -220,12 +233,8 @@ void writePin(uint8_t pin_code, uint8_t pin_state) {
         GPIO->PORT |= (1u << pin);
     }
 
-    else if (pin_state == LOW) {
-        GPIO->PORT &= ~(1u << pin);
-    }
-
     else {
-        errorSOS();
+        GPIO->PORT &= ~(1u << pin);
     }
 }
 

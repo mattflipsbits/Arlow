@@ -117,7 +117,7 @@ void setFrameSize(uint8_t size) {
             size = SIZE_9;
             break;
         default:
-            errorSOS();
+            errorSOS(UNKNOWN_ERR);
     }
 
     // clear the size bits first
@@ -143,7 +143,7 @@ void setParity(uint8_t parity) {
             parity = PARITY_ODD;
             break;
         default:
-            errorSOS();
+            errorSOS(UNKNOWN_ERR);
     }
 
     USART->UCSRC &= ~(0b11 << _UPM);
@@ -160,7 +160,7 @@ void setStopBits(uint8_t stop_bits) {
             USART->UCSRC |= (1u << _USBS);
             break;
         default:
-            errorSOS();
+            errorSOS(UNKNOWN_ERR);
     }
 }
 
@@ -176,7 +176,7 @@ void setSyncMode(uint8_t mode) {
             // TODO?: Any other config for SPI mode?
             break;
         default:
-            errorSOS();
+            errorSOS(UNKNOWN_ERR);
     }
 
     USART->UCSRC &= ~(0b11 << _UMSEL);
@@ -231,7 +231,7 @@ void setBaudRate(uint32_t baud) {
                 baud = 1;
                 break;
             default:
-                errorSOS();
+                errorSOS(UNKNOWN_ERR);
         }
     }
 
@@ -280,7 +280,7 @@ void setBaudRate(uint32_t baud) {
                 baud = 0;
                 break;
             default:
-                errorSOS();
+                errorSOS(UNKNOWN_ERR);
         }
     }
        

@@ -11,6 +11,12 @@
 #define _PORTB  (*(volatile uint8_t*)(0x25)) 
 
 // GPIO Error Codes
+#define BAD_PORT        (0x00)
+#define BAD_PIN         (0x01)
+#define BAD_MODE        (0x02)
+#define PU_DISABLED     (0x03)
+#define BAD_GETPORT     (0x04)
+#define UNKNOWN_ERR     (0xFF)
 
 
 // USART Registers
@@ -18,6 +24,8 @@
 #define _UCSRB  (*(volatile uint8_t*)(0xC1))
 #define _UCSRC  (*(volatile uint8_t*)(0xC2))
 #define _UBRRL  (*(volatile uint8_t*)(0xC4))
+#define _UBRRH  (*(volatile uint8_t*)(0xC5))
+#define _UDR    (*(volatile uint8_t*)(0xC6))
 
 // USART Error Codes
 
@@ -34,8 +42,8 @@
 
 void initSOS();
 void toggleUserLED();
-void errorSOS();
-
+void errorSOS(uint8_t error_code);
+void sendError(uint8_t error_code);
 
 
 
@@ -63,6 +71,7 @@ void initSOS() {
     // 9600 baud, async
     _UCSRA |= (1u << 1);   // ASYNC mode, double-speed
     int baud = 207;
+    _UBRRH = (baud >> 8) & 0x0f;
     _UBRRL = baud & 0xff;
 
     // enable transmission
@@ -75,7 +84,7 @@ void toggleUserLED() {
 
 // Loops SOS on the user LED using soft delays
 // TODO: Communicate error via serial port to host computer
-void errorSOS() {
+void errorSOS(uint8_t error_code) {
     const uint32_t DOT = 50000;
     const uint32_t DASH = 3 * DOT;
     const uint32_t SPACE = 4 * DOT;         
@@ -90,6 +99,8 @@ void errorSOS() {
     //       otherwise they get optimized out
 
     while (1) {
+        sendError(error_code);
+
         // S
         for (int i = 0; i < 6; i++) {
             toggleUserLED();
@@ -128,6 +139,44 @@ void errorSOS() {
     }
 }
 
+void sendError(uint8_t error_code) {
+    char msg[64] = { 0 };
 
+    switch (error_code) {
+        case BAD_PORT:
+            strcpy(msg, "Invalid GPIO port");
+            break;
+        case BAD_PIN:
+            strcpy(msg, "Invalid pin");
+            break;
+        case BAD_MODE:
+            strcpy(msg, "Invalid GPIO mode");
+            break;
+        case PU_DISABLED:
+            strcpy(msg, "Cannot set disabled pullup");
+            break;
+        case BAD_GETPORT:
+            strcpy(msg, "Attempted to retrieve invalid GPIO port");
+            break;
+        default:
+            strcpy(msg, "Unknown error");
+            break;     
+    }
+
+    for (int i = 0; i < strlen(msg); i++) {
+        while (!(_UCSRA & (1u << 5)))
+            ; // waiting until ready to transmit
+
+        _UDR = msg[i];
+    }
+        
+    while (!(_UCSRA & (1u << 5)))
+        ; // waiting until ready to transmit
+    _UDR = '\r';
+        
+    while (!(_UCSRA & (1u << 5)))
+        ; // waiting until ready to transmit
+    _UDR = '\n';
+}
 
 #endif

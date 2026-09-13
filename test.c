@@ -3,25 +3,15 @@
 
 
 int main(void) {
-    char* prompt = "Press 1 to toggle LED";
-    char input = 0;
-    
-    initUSART(8, 'n', 1, ASYNC, 9600, true, true);
     initGPIO(USER_LED, OUTPUT);
+    initGPIO(0x18, OUTPUT);
 
-    for (size_t i = 0; i < strlen(prompt); i++) {
-        sendByte(prompt[i]);
-    }
-
-    sendByte('\r');
-    sendByte('\n');
 
     while(1) {
-        input = receiveByte();
+        togglePin(USER_LED);
 
-        if (input == '1') {
-            togglePin(USER_LED);
-        }
+        for (volatile uint32_t i; i < 1000000; i++)
+            ;
     }
 }
 
