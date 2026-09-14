@@ -1,6 +1,7 @@
 #ifndef UNOR3_ERROR_H
 #define UNOR3_ERROR_H
 
+#include <string.h>
 
 /******************************************
  * Defines and function prototypes

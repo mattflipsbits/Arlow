@@ -9,7 +9,7 @@
 
 #include "../Arlow.h"
 
-#define DELAY   (250000)
+#define DELAY   (2500000)
 
 int main(void) {
     initGPIO(D13, OUTPUT);
