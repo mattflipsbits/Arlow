@@ -45,6 +45,8 @@ void initSOS();
 void toggleUserLED();
 void errorSOS(uint8_t error_code);
 void sendError(uint8_t error_code);
+void errSendByte(char ch);
+void errSendString(char* msg);
 
 
 
@@ -84,7 +86,7 @@ void toggleUserLED() {
 }
 
 // Loops SOS on the user LED using soft delays
-// TODO: Communicate error via serial port to host computer
+// and sends an error message to a host
 void errorSOS(uint8_t error_code) {
     const uint32_t DOT = 50000;
     const uint32_t DASH = 3 * DOT;
@@ -143,6 +145,33 @@ void errorSOS(uint8_t error_code) {
 void sendError(uint8_t error_code) {
     char msg[64] = { 0 };
 
+
+// Possible alternate implementation
+/*
+    char* GPIO_error[] = {
+        "Invalid GPIO port",
+        "Invalid pin",
+        "Invalid GPIO mode",
+        "Cannot set disabled pullup",
+        "Attempted to retrieve invalid GPIO port"
+    };
+
+    char* unknown_error_msg = "Unknown error";
+
+    if (error_code == BAD_PORT    ||
+        error_code == BAD_PIN     ||
+        error_code == BAD_MODE    ||
+        error_code == PU_DISABLED ||
+        error_code == BAD_GETPORT) {
+        strcpy(msg, GPIO_error[error_code & 0x0f]);
+    }
+
+    else {
+        strcpy(msg, unknown_error_msg);
+    }
+*/
+
+
     switch (error_code) {
         case BAD_PORT:
             strcpy(msg, "Invalid GPIO port");
@@ -164,20 +193,23 @@ void sendError(uint8_t error_code) {
             break;     
     }
 
-    for (int i = 0; i < strlen(msg); i++) {
-        while (!(_UCSRA & (1u << 5)))
-            ; // waiting until ready to transmit
+    errSendString(msg);
+}
 
-        _UDR = msg[i];
+void errSendByte(char ch) {
+    while (!(_UCSRA & (1u << 5)))
+        ; // waiting until ready to transmit
+
+    _UDR = ch;     
+}
+
+void errSendString(char* msg) {
+    for (int i = 0; i < strlen(msg); i++) {
+        errSendByte(msg[i]);
     }
         
-    while (!(_UCSRA & (1u << 5)))
-        ; // waiting until ready to transmit
-    _UDR = '\r';
-        
-    while (!(_UCSRA & (1u << 5)))
-        ; // waiting until ready to transmit
-    _UDR = '\n';
+    errSendByte('\r');
+    errSendByte('\n');
 }
 
 #endif
